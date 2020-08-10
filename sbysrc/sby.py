@@ -24,59 +24,44 @@ from time import localtime
 
 class DictAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
-        assert isinstance(getattr(namespace, self.dest), dict), "Use ArgumentParser.set_defaults() to initialize {} to dict()".format(self.dest)
+        assert isinstance(getattr(namespace, self.dest),
+                          dict), "Use ArgumentParser.set_defaults() to initialize {} to dict()".format(self.dest)
         name = option_string.lstrip(parser.prefix_chars).replace("-", "_")
         getattr(namespace, self.dest)[name] = values
 
-parser = argparse.ArgumentParser(prog="sby",
-        usage="%(prog)s [options] [<jobname>.sby [tasknames] | <dirname>]")
+parser = argparse.ArgumentParser(prog="sby", usage="%(prog)s [options] [<jobname>.sby [tasknames] | <dirname>]")
 parser.set_defaults(exe_paths=dict())
 
 parser.add_argument("-d", metavar="<dirname>", dest="workdir",
-        help="set workdir name. default: <jobname> or <jobname>_<taskname>")
-parser.add_argument("-f", action="store_true", dest="force",
-        help="remove workdir if it already exists")
-parser.add_argument("-b", action="store_true", dest="backup",
-        help="backup workdir if it already exists")
-parser.add_argument("-t", action="store_true", dest="tmpdir",
-        help="run in a temporary workdir (remove when finished)")
+                    help="set workdir name. default: <jobname> or <jobname>_<taskname>")
+parser.add_argument("-f", action="store_true", dest="force", help="remove workdir if it already exists")
+parser.add_argument("-b", action="store_true", dest="backup", help="backup workdir if it already exists")
+parser.add_argument("-t", action="store_true", dest="tmpdir", help="run in a temporary workdir (remove when finished)")
 parser.add_argument("-T", metavar="<taskname>", action="append", dest="tasknames", default=list(),
-        help="add taskname (useful when sby file is read from stdin)")
+                    help="add taskname (useful when sby file is read from stdin)")
 parser.add_argument("-E", action="store_true", dest="throw_err",
-        help="throw an exception (incl stack trace) for most errors")
+                    help="throw an exception (incl stack trace) for most errors")
 
-parser.add_argument("--yosys", metavar="<path_to_executable>",
-        action=DictAction, dest="exe_paths")
-parser.add_argument("--abc", metavar="<path_to_executable>",
-        action=DictAction, dest="exe_paths")
-parser.add_argument("--smtbmc", metavar="<path_to_executable>",
-        action=DictAction, dest="exe_paths")
-parser.add_argument("--suprove", metavar="<path_to_executable>",
-        action=DictAction, dest="exe_paths")
-parser.add_argument("--aigbmc", metavar="<path_to_executable>",
-        action=DictAction, dest="exe_paths")
-parser.add_argument("--avy", metavar="<path_to_executable>",
-        action=DictAction, dest="exe_paths")
-parser.add_argument("--btormc", metavar="<path_to_executable>",
-        action=DictAction, dest="exe_paths")
-parser.add_argument("--pono", metavar="<path_to_executable>",
-        action=DictAction, dest="exe_paths",
-        help="configure which executable to use for the respective tool")
+parser.add_argument("--yosys", metavar="<path_to_executable>", action=DictAction, dest="exe_paths")
+parser.add_argument("--abc", metavar="<path_to_executable>", action=DictAction, dest="exe_paths")
+parser.add_argument("--smtbmc", metavar="<path_to_executable>", action=DictAction, dest="exe_paths")
+parser.add_argument("--suprove", metavar="<path_to_executable>", action=DictAction, dest="exe_paths")
+parser.add_argument("--aigbmc", metavar="<path_to_executable>", action=DictAction, dest="exe_paths")
+parser.add_argument("--avy", metavar="<path_to_executable>", action=DictAction, dest="exe_paths")
+parser.add_argument("--btormc", metavar="<path_to_executable>", action=DictAction, dest="exe_paths")
+parser.add_argument("--pono", metavar="<path_to_executable>", action=DictAction, dest="exe_paths",
+                    help="configure which executable to use for the respective tool")
 parser.add_argument("--dumpcfg", action="store_true", dest="dump_cfg",
-        help="print the pre-processed configuration file")
-parser.add_argument("--dumptasks", action="store_true", dest="dump_tasks",
-        help="print the list of tasks")
-parser.add_argument("--dumpfiles", action="store_true", dest="dump_files",
-        help="print the list of source files")
-parser.add_argument("--setup", action="store_true", dest="setupmode",
-        help="set up the working directory and exit")
+                    help="print the pre-processed configuration file")
+parser.add_argument("--dumptasks", action="store_true", dest="dump_tasks", help="print the list of tasks")
+parser.add_argument("--dumpfiles", action="store_true", dest="dump_files", help="print the list of source files")
+parser.add_argument("--setup", action="store_true", dest="setupmode", help="set up the working directory and exit")
 
-parser.add_argument("--init-config-file", dest="init_config_file",
-        help="create a default .sby config file")
+parser.add_argument("--init-config-file", dest="init_config_file", help="create a default .sby config file")
 parser.add_argument("sbyfile", metavar="<jobname>.sby | <dirname>", nargs="?",
-        help=".sby file OR directory containing config.sby file")
+                    help=".sby file OR directory containing config.sby file")
 parser.add_argument("arg_tasknames", metavar="tasknames", nargs="*",
-        help="tasks to run (only valid when <jobname>.sby is used)")
+                    help="tasks to run (only valid when <jobname>.sby is used)")
 
 args = parser.parse_args()
 
@@ -198,11 +183,11 @@ def read_sbyconfig(sbydata, taskname):
         task_skip_line = False
 
         for t in task_tags_all:
-            if line.startswith(t+":"):
-                line = line[len(t)+1:].lstrip()
+            if line.startswith(t + ":"):
+                line = line[len(t) + 1:].lstrip()
                 match = t in task_tags_active
-            elif line.startswith("~"+t+":"):
-                line = line[len(t)+2:].lstrip()
+            elif line.startswith("~" + t + ":"):
+                line = line[len(t) + 2:].lstrip()
                 match = t not in task_tags_active
             else:
                 continue
@@ -268,7 +253,6 @@ def read_sbyconfig(sbydata, taskname):
 
     return cfgdata, tasklist
 
-
 sbydata = list()
 with (open(sbyfile, "r") if sbyfile is not None else sys.stdin) as f:
     for line in f:
@@ -295,7 +279,7 @@ if dump_files:
         if start_index == -1:
             return
 
-        for line in sbyconfig[start_index+1:]:
+        for line in sbyconfig[start_index + 1:]:
             line = line.strip()
             if line.startswith("["):
                 break
@@ -341,7 +325,9 @@ def run_job(taskname):
             backup_idx = 0
             while os.path.exists("{}.bak{:03d}".format(my_workdir, backup_idx)):
                 backup_idx += 1
-            early_log(my_workdir, "Moving directory '{}' to '{}'.".format(my_workdir, "{}.bak{:03d}".format(my_workdir, backup_idx)))
+            early_log(
+                my_workdir, "Moving directory '{}' to '{}'.".format(my_workdir,
+                                                                    "{}.bak{:03d}".format(my_workdir, backup_idx)))
             shutil.move(my_workdir, "{}.bak{:03d}".format(my_workdir, backup_idx))
 
         if opt_force and not reusedir:
@@ -361,7 +347,8 @@ def run_job(taskname):
         my_opt_tmpdir = True
         my_workdir = tempfile.mkdtemp()
 
-    junit_ts_name = os.path.basename(sbyfile[:-4]) if sbyfile is not None else workdir if workdir is not None else "stdin"
+    junit_ts_name = os.path.basename(
+        sbyfile[:-4]) if sbyfile is not None else workdir if workdir is not None else "stdin"
     junit_tc_name = taskname if taskname is not None else "default"
 
     if reusedir:
@@ -404,12 +391,18 @@ def run_job(taskname):
             junit_errors = 1 if job.retcode == 16 else 0
             junit_failures = 1 if job.retcode != 0 and junit_errors == 0 else 0
             print('<?xml version="1.0" encoding="UTF-8"?>', file=f)
-            print('<testsuites disabled="0" errors="{}" failures="{}" tests="1" time="{}">'.format(junit_errors, junit_failures, job.total_time), file=f)
-            print('<testsuite disabled="0" errors="{}" failures="{}" name="{}" skipped="0" tests="1" time="{}">'.format(junit_errors, junit_failures, junit_ts_name, job.total_time), file=f)
+            print(
+                '<testsuites disabled="0" errors="{}" failures="{}" tests="1" time="{}">'.format(
+                    junit_errors, junit_failures, job.total_time), file=f)
+            print(
+                '<testsuite disabled="0" errors="{}" failures="{}" name="{}" skipped="0" tests="1" time="{}">'.format(
+                    junit_errors, junit_failures, junit_ts_name, job.total_time), file=f)
             print('<properties>', file=f)
             print('<property name="os" value="{}"/>'.format(os.name), file=f)
             print('</properties>', file=f)
-            print('<testcase classname="{}" name="{}" status="{}" time="{}">'.format(junit_ts_name, junit_tc_name, job.status, job.total_time), file=f)
+            print(
+                '<testcase classname="{}" name="{}" status="{}" time="{}">'.format(junit_ts_name, junit_tc_name,
+                                                                                   job.status, job.total_time), file=f)
             if junit_errors:
                 print('<error message="{}" type="{}"/>'.format(job.status, job.status), file=f)
             if junit_failures:
@@ -417,13 +410,14 @@ def run_job(taskname):
             print('<system-out>', end="", file=f)
             with open("{}/logfile.txt".format(job.workdir), "r") as logf:
                 for line in logf:
-                    print(line.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;"), end="", file=f)
+                    print(
+                        line.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;"),
+                        end="", file=f)
             print('</system-out></testcase></testsuite></testsuites>', file=f)
         with open("{}/status".format(job.workdir), "w") as f:
             print("{} {} {}".format(job.status, job.retcode, job.total_time), file=f)
 
     return job.retcode
-
 
 retcode = 0
 for t in tasknames:
@@ -431,6 +425,7 @@ for t in tasknames:
 
 if retcode and (len(tasknames) > 1 or tasknames[0] is not None):
     tm = localtime()
-    print("SBY {:2d}:{:02d}:{:02d} One or more tasks produced a non-zero return code.".format(tm.tm_hour, tm.tm_min, tm.tm_sec))
+    print("SBY {:2d}:{:02d}:{:02d} One or more tasks produced a non-zero return code.".format(
+        tm.tm_hour, tm.tm_min, tm.tm_sec))
 
 sys.exit(retcode)

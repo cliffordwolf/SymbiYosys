@@ -43,8 +43,8 @@ def run(mode, job, engine_idx, engine):
         job.error("Invalid solver command {}.".format(solver_args[0]))
 
     task = SbyTask(job, "engine_{}".format(engine_idx), job.model("aig"),
-            "cd {}; {} model/design_aiger.aig".format(job.workdir, solver_cmd),
-            logfile=open("{}/engine_{}/logfile.txt".format(job.workdir, engine_idx), "w"))
+                   "cd {}; {} model/design_aiger.aig".format(job.workdir, solver_cmd),
+                   logfile=open("{}/engine_{}/logfile.txt".format(job.workdir, engine_idx), "w"))
 
     task_status = None
     produced_cex = False
@@ -66,7 +66,7 @@ def run(mode, job, engine_idx, engine):
             return None
 
         if line.startswith("u"):
-            return "No CEX up to depth {}.".format(int(line[1:])-1)
+            return "No CEX up to depth {}.".format(int(line[1:]) - 1)
 
         if line in ["0", "1", "2"]:
             print(line, file=aiw_file)
@@ -92,21 +92,22 @@ def run(mode, job, engine_idx, engine):
         if task_status == "FAIL" and job.opt_aigsmt != "none":
             if produced_cex:
                 if mode == "live":
-                    task2 = SbyTask(job, "engine_{}".format(engine_idx), job.model("smt2"),
-                            ("cd {}; {} -g -s {}{} --noprogress --dump-vcd engine_{i}/trace.vcd --dump-vlogtb engine_{i}/trace_tb.v " +
-                             "--dump-smtc engine_{i}/trace.smtc --aig model/design_aiger.aim:engine_{i}/trace.aiw model/design_smt2.smt2").format
-                                    (job.workdir, job.exe_paths["smtbmc"], job.opt_aigsmt,
-                                    "" if job.opt_tbtop is None else " --vlogtb-top {}".format(job.opt_tbtop),
-                                    i=engine_idx),
-                            logfile=open("{}/engine_{}/logfile2.txt".format(job.workdir, engine_idx), "w"))
+                    task2 = SbyTask(job, "engine_{}".format(engine_idx), job.model("smt2"), (
+                        "cd {}; {} -g -s {}{} --noprogress --dump-vcd engine_{i}/trace.vcd --dump-vlogtb engine_{i}/trace_tb.v "
+                        +
+                        "--dump-smtc engine_{i}/trace.smtc --aig model/design_aiger.aim:engine_{i}/trace.aiw model/design_smt2.smt2"
+                    ).format(job.workdir, job.exe_paths["smtbmc"], job.opt_aigsmt,
+                             "" if job.opt_tbtop is None else " --vlogtb-top {}".format(job.opt_tbtop), i=engine_idx),
+                                    logfile=open("{}/engine_{}/logfile2.txt".format(job.workdir, engine_idx), "w"))
                 else:
-                    task2 = SbyTask(job, "engine_{}".format(engine_idx), job.model("smt2"),
-                            ("cd {}; {} -s {}{} --noprogress --append {} --dump-vcd engine_{i}/trace.vcd --dump-vlogtb engine_{i}/trace_tb.v " +
-                             "--dump-smtc engine_{i}/trace.smtc --aig model/design_aiger.aim:engine_{i}/trace.aiw model/design_smt2.smt2").format
-                                    (job.workdir, job.exe_paths["smtbmc"], job.opt_aigsmt,
-                                    "" if job.opt_tbtop is None else " --vlogtb-top {}".format(job.opt_tbtop),
-                                    job.opt_append, i=engine_idx),
-                            logfile=open("{}/engine_{}/logfile2.txt".format(job.workdir, engine_idx), "w"))
+                    task2 = SbyTask(job, "engine_{}".format(engine_idx), job.model("smt2"), (
+                        "cd {}; {} -s {}{} --noprogress --append {} --dump-vcd engine_{i}/trace.vcd --dump-vlogtb engine_{i}/trace_tb.v "
+                        +
+                        "--dump-smtc engine_{i}/trace.smtc --aig model/design_aiger.aim:engine_{i}/trace.aiw model/design_smt2.smt2"
+                    ).format(job.workdir, job.exe_paths["smtbmc"], job.opt_aigsmt,
+                             "" if job.opt_tbtop is None else " --vlogtb-top {}".format(job.opt_tbtop), job.opt_append,
+                             i=engine_idx), logfile=open("{}/engine_{}/logfile2.txt".format(job.workdir, engine_idx),
+                                                         "w"))
 
                 task2_status = None
 
@@ -129,7 +130,8 @@ def run(mode, job, engine_idx, engine):
                         assert task2_status == "FAIL"
 
                     if os.path.exists("{}/engine_{}/trace.vcd".format(job.workdir, engine_idx)):
-                        job.summary.append("counterexample trace: {}/engine_{}/trace.vcd".format(job.workdir, engine_idx))
+                        job.summary.append("counterexample trace: {}/engine_{}/trace.vcd".format(
+                            job.workdir, engine_idx))
 
                 task2.output_callback = output_callback2
                 task2.exit_callback = exit_callback2

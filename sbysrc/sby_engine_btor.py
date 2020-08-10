@@ -38,7 +38,8 @@ def run(mode, job, engine_idx, engine):
         solver_cmd = ""
         if random_seed:
             solver_cmd += "BTORSEED={} ".format(random_seed)
-        solver_cmd += job.exe_paths["btormc"] + " --stop-first {} -v 1 -kmax {}".format(0 if mode == "cover" else 1, job.opt_depth - 1)
+        solver_cmd += job.exe_paths["btormc"] + " --stop-first {} -v 1 -kmax {}".format(
+            0 if mode == "cover" else 1, job.opt_depth - 1)
         if job.opt_skip is not None:
             solver_cmd += " -kmin {}".format(job.opt_skip)
         solver_cmd += " ".join([""] + solver_args[1:])
@@ -88,7 +89,8 @@ def run(mode, job, engine_idx, engine):
         job.summary.append("engine_{} ({}) returned {}".format(engine_idx, " ".join(engine), task_status))
 
         if len(common_state.produced_traces) == 0:
-            job.log("engine_{}: Engine did not produce a{}example.".format(engine_idx, " counter" if mode != "cover" else "n "))
+            job.log("engine_{}: Engine did not produce a{}example.".format(engine_idx,
+                                                                           " counter" if mode != "cover" else "n "))
         elif len(common_state.produced_traces) <= common_state.print_traces_max:
             job.summary.extend(common_state.produced_traces)
         else:
@@ -99,12 +101,14 @@ def run(mode, job, engine_idx, engine):
         job.terminate()
 
     if mode == "cover":
+
         def output_callback2(line):
             match = re.search(r"Assert failed in test", line)
             if match:
                 common_state.assert_fail = True
             return line
     else:
+
         def output_callback2(line):
             return line
 
@@ -114,7 +118,8 @@ def run(mode, job, engine_idx, engine):
 
             vcdpath = "{}/engine_{}/trace{}.vcd".format(job.workdir, engine_idx, suffix)
             if os.path.exists(vcdpath):
-                common_state.produced_traces.append("{}trace: {}".format("" if mode == "cover" else "counterexample ", vcdpath))
+                common_state.produced_traces.append("{}trace: {}".format("" if mode == "cover" else "counterexample ",
+                                                                         vcdpath))
 
             common_state.running_tasks -= 1
             if (common_state.running_tasks == 0):
@@ -131,14 +136,16 @@ def run(mode, job, engine_idx, engine):
                     assert common_state.produced_cex == 0
 
             else:
-                job.error("engine_{}: BTOR solver '{}' is currently not supported in cover mode.".format(engine_idx, solver_args[0]))
+                job.error("engine_{}: BTOR solver '{}' is currently not supported in cover mode.".format(
+                    engine_idx, solver_args[0]))
 
         if (common_state.produced_cex < common_state.expected_cex) and line == "sat":
             assert common_state.wit_file == None
             if common_state.expected_cex == 1:
                 common_state.wit_file = open("{}/engine_{}/trace.wit".format(job.workdir, engine_idx), "w")
             else:
-                common_state.wit_file = open("{}/engine_{}/trace{}.wit".format(job.workdir, engine_idx, common_state.produced_cex), "w")
+                common_state.wit_file = open(
+                    "{}/engine_{}/trace{}.wit".format(job.workdir, engine_idx, common_state.produced_cex), "w")
             if solver_args[0] != "btormc":
                 task.log("Found satisfiability witness.")
 
@@ -149,9 +156,11 @@ def run(mode, job, engine_idx, engine):
                     suffix = ""
                 else:
                     suffix = common_state.produced_cex
-                task2 = SbyTask(job, "engine_{}_{}".format(engine_idx, common_state.produced_cex), job.model("btor"),
-                        "cd {dir} ; btorsim -c --vcd engine_{idx}/trace{i}.vcd --hierarchical-symbols --info model/design_btor.info model/design_btor.btor engine_{idx}/trace{i}.wit".format(dir=job.workdir, idx=engine_idx, i=suffix),
-                        logfile=open("{dir}/engine_{idx}/logfile2.txt".format(dir=job.workdir, idx=engine_idx), "w"))
+                task2 = SbyTask(
+                    job, "engine_{}_{}".format(engine_idx, common_state.produced_cex), job.model("btor"),
+                    "cd {dir} ; btorsim -c --vcd engine_{idx}/trace{i}.vcd --hierarchical-symbols --info model/design_btor.info model/design_btor.btor engine_{idx}/trace{i}.wit"
+                    .format(dir=job.workdir, idx=engine_idx, i=suffix),
+                    logfile=open("{dir}/engine_{idx}/logfile2.txt".format(dir=job.workdir, idx=engine_idx), "w"))
                 task2.output_callback = output_callback2
                 task2.exit_callback = make_exit_callback(suffix)
                 task2.checkretcode = True
@@ -190,7 +199,7 @@ def run(mode, job, engine_idx, engine):
 
     def exit_callback(retcode):
         if solver_args[0] == "pono":
-            assert retcode in [0, 1, 255] # UNKNOWN = -1, FALSE = 0, TRUE = 1, ERROR = 2
+            assert retcode in [0, 1, 255]  # UNKNOWN = -1, FALSE = 0, TRUE = 1, ERROR = 2
         else:
             assert retcode == 0
         if common_state.expected_cex != 0:
@@ -210,8 +219,8 @@ def run(mode, job, engine_idx, engine):
             print_traces_and_terminate()
 
     task = SbyTask(job, "engine_{}".format(engine_idx), job.model("btor"),
-            "cd {}; {} model/design_btor.btor".format(job.workdir, solver_cmd),
-            logfile=open("{}/engine_{}/logfile.txt".format(job.workdir, engine_idx), "w"))
+                   "cd {}; {} model/design_btor.btor".format(job.workdir, solver_cmd),
+                   logfile=open("{}/engine_{}/logfile.txt".format(job.workdir, engine_idx), "w"))
 
     task.output_callback = output_callback
     task.exit_callback = exit_callback

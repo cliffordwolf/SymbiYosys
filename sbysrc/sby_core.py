@@ -60,9 +60,9 @@ class SbyTask:
             # Windows command interpreter equivalents for sequential
             # commands (; => &) command grouping ({} => ()).
             replacements = {
-                ";" : "&",
-                "{" : "(",
-                "}" : ")",
+                ";": "&",
+                "{": "(",
+                "}": ")",
             }
 
             cmdline_copy = cmdline
@@ -140,19 +140,21 @@ class SbyTask:
                 self.job.log("{}: starting process \"{}\"".format(self.info, self.cmdline))
 
             if os.name == "posix":
+
                 def preexec_fn():
                     signal.signal(signal.SIGINT, signal.SIG_IGN)
                     os.setpgrp()
 
-                self.p = subprocess.Popen(["/usr/bin/env", "bash", "-c", self.cmdline], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
-                        stderr=(subprocess.STDOUT if self.logstderr else None), preexec_fn=preexec_fn)
+                self.p = subprocess.Popen(["/usr/bin/env", "bash", "-c", self.cmdline], stdin=subprocess.DEVNULL,
+                                          stdout=subprocess.PIPE,
+                                          stderr=(subprocess.STDOUT if self.logstderr else None), preexec_fn=preexec_fn)
 
                 fl = fcntl.fcntl(self.p.stdout, fcntl.F_GETFL)
                 fcntl.fcntl(self.p.stdout, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 
             else:
                 self.p = subprocess.Popen(self.cmdline, shell=True, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
-                        stderr=(subprocess.STDOUT if self.logstderr else None))
+                                          stderr=(subprocess.STDOUT if self.logstderr else None))
 
             self.job.tasks_pending.remove(self)
             self.job.tasks_running.append(self)
@@ -200,10 +202,8 @@ class SbyTask:
                 next_task.poll()
             return
 
-
 class SbyAbort(BaseException):
     pass
-
 
 class SbyJob:
     def __init__(self, sbyconfig, workdir, early_logs, reusedir):
@@ -285,13 +285,19 @@ class SbyJob:
 
     def log(self, logmessage):
         tm = localtime()
-        print("SBY {:2d}:{:02d}:{:02d} [{}] {}".format(tm.tm_hour, tm.tm_min, tm.tm_sec, self.workdir, logmessage), flush=True)
-        print("SBY {:2d}:{:02d}:{:02d} [{}] {}".format(tm.tm_hour, tm.tm_min, tm.tm_sec, self.workdir, logmessage), file=self.logfile, flush=True)
+        print("SBY {:2d}:{:02d}:{:02d} [{}] {}".format(tm.tm_hour, tm.tm_min, tm.tm_sec, self.workdir, logmessage),
+              flush=True)
+        print("SBY {:2d}:{:02d}:{:02d} [{}] {}".format(tm.tm_hour, tm.tm_min, tm.tm_sec, self.workdir, logmessage),
+              file=self.logfile, flush=True)
 
     def error(self, logmessage):
         tm = localtime()
-        print("SBY {:2d}:{:02d}:{:02d} [{}] ERROR: {}".format(tm.tm_hour, tm.tm_min, tm.tm_sec, self.workdir, logmessage), flush=True)
-        print("SBY {:2d}:{:02d}:{:02d} [{}] ERROR: {}".format(tm.tm_hour, tm.tm_min, tm.tm_sec, self.workdir, logmessage), file=self.logfile, flush=True)
+        print(
+            "SBY {:2d}:{:02d}:{:02d} [{}] ERROR: {}".format(tm.tm_hour, tm.tm_min, tm.tm_sec, self.workdir, logmessage),
+            flush=True)
+        print(
+            "SBY {:2d}:{:02d}:{:02d} [{}] ERROR: {}".format(tm.tm_hour, tm.tm_min, tm.tm_sec, self.workdir, logmessage),
+            file=self.logfile, flush=True)
         self.status = "ERROR"
         if "ERROR" not in self.expect:
             self.retcode = 16
@@ -385,9 +391,9 @@ class SbyJob:
                 print("hierarchy -simcheck", file=f)
                 print("write_ilang ../model/design{}.il".format("" if model_name == "base" else "_nomem"), file=f)
 
-            task = SbyTask(self, model_name, [],
-                    "cd {}/src; {} -ql ../model/design{s}.log ../model/design{s}.ys".format(self.workdir, self.exe_paths["yosys"],
-                    s="" if model_name == "base" else "_nomem"))
+            task = SbyTask(
+                self, model_name, [], "cd {}/src; {} -ql ../model/design{s}.log ../model/design{s}.ys".format(
+                    self.workdir, self.exe_paths["yosys"], s="" if model_name == "base" else "_nomem"))
             task.checkretcode = True
 
             return [task]
@@ -410,8 +416,10 @@ class SbyJob:
                 else:
                     print("write_smt2 -wires design_{}.smt2".format(model_name), file=f)
 
-            task = SbyTask(self, model_name, self.model("nomem" if "_nomem" in model_name else "base"),
-                    "cd {}/model; {} -ql design_{s}.log design_{s}.ys".format(self.workdir, self.exe_paths["yosys"], s=model_name))
+            task = SbyTask(
+                self, model_name, self.model("nomem" if "_nomem" in model_name else "base"),
+                "cd {}/model; {} -ql design_{s}.log design_{s}.ys".format(self.workdir, self.exe_paths["yosys"],
+                                                                          s=model_name))
             task.checkretcode = True
 
             return [task]
@@ -433,10 +441,14 @@ class SbyJob:
                 print("delete -output", file=f)
                 print("dffunmap", file=f)
                 print("stat", file=f)
-                print("write_btor {}-i design_{m}.info design_{m}.btor".format("-c " if self.opt_mode == "cover" else "", m=model_name), file=f)
+                print(
+                    "write_btor {}-i design_{m}.info design_{m}.btor".format("-c " if self.opt_mode == "cover" else "",
+                                                                             m=model_name), file=f)
 
-            task = SbyTask(self, model_name, self.model("nomem" if "_nomem" in model_name else "base"),
-                    "cd {}/model; {} -ql design_{s}.log design_{s}.ys".format(self.workdir, self.exe_paths["yosys"], s=model_name))
+            task = SbyTask(
+                self, model_name, self.model("nomem" if "_nomem" in model_name else "base"),
+                "cd {}/model; {} -ql design_{s}.log design_{s}.ys".format(self.workdir, self.exe_paths["yosys"],
+                                                                          s=model_name))
             task.checkretcode = True
 
             return [task]
@@ -458,8 +470,9 @@ class SbyJob:
                 print("stat", file=f)
                 print("write_aiger -I -B -zinit -map design_aiger.aim design_aiger.aig", file=f)
 
-            task = SbyTask(self, "aig", self.model("nomem"),
-                    "cd {}/model; {} -ql design_aiger.log design_aiger.ys".format(self.workdir, self.exe_paths["yosys"]))
+            task = SbyTask(
+                self, "aig", self.model("nomem"),
+                "cd {}/model; {} -ql design_aiger.log design_aiger.ys".format(self.workdir, self.exe_paths["yosys"]))
             task.checkretcode = True
 
             return [task]
@@ -668,16 +681,18 @@ class SbyJob:
             self.total_time = total_process_time
 
             self.summary = [
-                "Elapsed clock time [H:MM:SS (secs)]: {}:{:02d}:{:02d} ({})".format
-                        (total_clock_time // (60*60), (total_clock_time // 60) % 60, total_clock_time % 60, total_clock_time),
-                "Elapsed process time [H:MM:SS (secs)]: {}:{:02d}:{:02d} ({})".format
-                        (total_process_time // (60*60), (total_process_time // 60) % 60, total_process_time % 60, total_process_time),
+                "Elapsed clock time [H:MM:SS (secs)]: {}:{:02d}:{:02d} ({})".format(
+                    total_clock_time // (60 * 60),
+                    (total_clock_time // 60) % 60, total_clock_time % 60, total_clock_time),
+                "Elapsed process time [H:MM:SS (secs)]: {}:{:02d}:{:02d} ({})".format(
+                    total_process_time // (60 * 60),
+                    (total_process_time // 60) % 60, total_process_time % 60, total_process_time),
             ] + self.summary
         else:
             self.summary = [
-                "Elapsed clock time [H:MM:SS (secs)]: {}:{:02d}:{:02d} ({})".format
-                        (total_clock_time // (60*60), (total_clock_time // 60) % 60, total_clock_time % 60, total_clock_time),
-                "Elapsed process time unvailable on Windows"
+                "Elapsed clock time [H:MM:SS (secs)]: {}:{:02d}:{:02d} ({})".format(
+                    total_clock_time // (60 * 60), (total_clock_time // 60) % 60, total_clock_time % 60,
+                    total_clock_time), "Elapsed process time unvailable on Windows"
             ] + self.summary
 
         for line in self.summary:

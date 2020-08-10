@@ -45,10 +45,11 @@ def run(mode, job, engine_idx, engine):
     else:
         job.error("Invalid ABC command {}.".format(abc_command[0]))
 
-    task = SbyTask(job, "engine_{}".format(engine_idx), job.model("aig"),
-            ("cd {}; {} -c 'read_aiger model/design_aiger.aig; fold; strash; {}; write_cex -a engine_{}/trace.aiw'").format
-            (job.workdir, job.exe_paths["abc"], " ".join(abc_command), engine_idx),
-            logfile=open("{}/engine_{}/logfile.txt".format(job.workdir, engine_idx), "w"))
+    task = SbyTask(
+        job, "engine_{}".format(engine_idx), job.model("aig"),
+        ("cd {}; {} -c 'read_aiger model/design_aiger.aig; fold; strash; {}; write_cex -a engine_{}/trace.aiw'").format(
+            job.workdir, job.exe_paths["abc"], " ".join(abc_command),
+            engine_idx), logfile=open("{}/engine_{}/logfile.txt".format(job.workdir, engine_idx), "w"))
 
     task.noprintregex = re.compile(r"^\.+$")
     task_status = None
@@ -59,7 +60,8 @@ def run(mode, job, engine_idx, engine):
         match = re.match(r"^Output [0-9]+ of miter .* was asserted in frame [0-9]+.", line)
         if match: task_status = "FAIL"
 
-        match = re.match(r"^Simulation of [0-9]+ frames for [0-9]+ rounds with [0-9]+ restarts did not assert POs.", line)
+        match = re.match(r"^Simulation of [0-9]+ frames for [0-9]+ rounds with [0-9]+ restarts did not assert POs.",
+                         line)
         if match: task_status = "UNKNOWN"
 
         match = re.match(r"^Stopping BMC because all 2\^[0-9]+ reachable states are visited.", line)
@@ -84,13 +86,13 @@ def run(mode, job, engine_idx, engine):
         job.terminate()
 
         if task_status == "FAIL" and job.opt_aigsmt != "none":
-            task2 = SbyTask(job, "engine_{}".format(engine_idx), job.model("smt2"),
-                    ("cd {}; {} -s {}{} --noprogress --append {} --dump-vcd engine_{i}/trace.vcd --dump-vlogtb engine_{i}/trace_tb.v " +
-                     "--dump-smtc engine_{i}/trace.smtc --aig model/design_aiger.aim:engine_{i}/trace.aiw --aig-noheader model/design_smt2.smt2").format
-                            (job.workdir, job.exe_paths["smtbmc"], job.opt_aigsmt,
-                            "" if job.opt_tbtop is None else " --vlogtb-top {}".format(job.opt_tbtop),
-                            job.opt_append, i=engine_idx),
-                    logfile=open("{}/engine_{}/logfile2.txt".format(job.workdir, engine_idx), "w"))
+            task2 = SbyTask(job, "engine_{}".format(engine_idx), job.model("smt2"), (
+                "cd {}; {} -s {}{} --noprogress --append {} --dump-vcd engine_{i}/trace.vcd --dump-vlogtb engine_{i}/trace_tb.v "
+                +
+                "--dump-smtc engine_{i}/trace.smtc --aig model/design_aiger.aim:engine_{i}/trace.aiw --aig-noheader model/design_smt2.smt2"
+            ).format(job.workdir, job.exe_paths["smtbmc"], job.opt_aigsmt,
+                     "" if job.opt_tbtop is None else " --vlogtb-top {}".format(job.opt_tbtop), job.opt_append,
+                     i=engine_idx), logfile=open("{}/engine_{}/logfile2.txt".format(job.workdir, engine_idx), "w"))
 
             task2_status = None
 
