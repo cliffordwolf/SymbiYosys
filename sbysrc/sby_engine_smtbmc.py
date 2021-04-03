@@ -33,8 +33,10 @@ def run(mode, job, engine_idx, engine):
     induction_only = False
     random_seed = None
 
-    opts, args = getopt.getopt(engine[1:], "", ["nomem", "syn", "stbv", "stdt", "presat",
-            "nopresat", "unroll", "nounroll", "dumpsmt2", "progress", "basecase", "induction", "seed="])
+    opts, args = getopt.getopt(engine[1:], "", [
+        "nomem", "syn", "stbv", "stdt", "presat", "nopresat", "unroll", "nounroll", "dumpsmt2", "progress", "basecase",
+        "induction", "seed="
+    ])
 
     for o, a in opts:
         if o == "--nomem":
@@ -73,7 +75,7 @@ def run(mode, job, engine_idx, engine):
     xtra_opts = False
     for i, a in enumerate(args):
         if i == 0 and a == "z3" and unroll_opt is None:
-                unroll_opt = False
+            unroll_opt = False
         if a == "--":
             xtra_opts = True
             continue
@@ -92,7 +94,7 @@ def run(mode, job, engine_idx, engine):
         smtbmc_opts += ["--smtc", "src/{}".format(job.opt_smtc)]
 
     if job.opt_tbtop is not None:
-         smtbmc_opts += ["--vlogtb-top", job.opt_tbtop]
+        smtbmc_opts += ["--vlogtb-top", job.opt_tbtop]
 
     model_name = "smt2"
     if syn_opt: model_name += "_syn"
@@ -131,16 +133,17 @@ def run(mode, job, engine_idx, engine):
     if not progress:
         smtbmc_opts.append("--noprogress")
 
-
     if job.opt_skip is not None:
         t_opt = "{}:{}".format(job.opt_skip, job.opt_depth)
     else:
         t_opt = "{}".format(job.opt_depth)
 
-    task = SbyTask(job, taskname, job.model(model_name),
-            "cd {}; {} {} -t {} {} --append {} --dump-vcd {p}.vcd --dump-vlogtb {p}_tb.v --dump-smtc {p}.smtc model/design_{}.smt2".format
-                    (job.workdir, job.exe_paths["smtbmc"], " ".join(smtbmc_opts), t_opt, "--info \"(set-option :random-seed {})\"".format(random_seed) if random_seed else "", job.opt_append, model_name, p=trace_prefix),
-            logfile=open(logfile_prefix + ".txt", "w"), logstderr=(not progress))
+    task = SbyTask(
+        job, taskname, job.model(model_name),
+        "cd {}; {} {} -t {} {} --append {} --dump-vcd {p}.vcd --dump-vlogtb {p}_tb.v --dump-smtc {p}.smtc model/design_{}.smt2"
+        .format(job.workdir, job.exe_paths["smtbmc"], " ".join(smtbmc_opts), t_opt,
+                "--info \"(set-option :random-seed {})\"".format(random_seed) if random_seed else "", job.opt_append,
+                model_name, p=trace_prefix), logfile=open(logfile_prefix + ".txt", "w"), logstderr=(not progress))
 
     if mode == "prove_basecase":
         job.basecase_tasks.append(task)
@@ -197,17 +200,22 @@ def run(mode, job, engine_idx, engine):
                         break
                 else:
                     excess_traces = 0
-                    while os.path.exists("{}/engine_{}/trace{}.vcd".format(job.workdir, engine_idx, print_traces_max + excess_traces)):
+                    while os.path.exists("{}/engine_{}/trace{}.vcd".format(job.workdir, engine_idx,
+                                                                           print_traces_max + excess_traces)):
                         excess_traces += 1
                     if excess_traces > 0:
-                        job.summary.append("and {} further trace{}".format(excess_traces, "s" if excess_traces > 1 else ""))
+                        job.summary.append("and {} further trace{}".format(excess_traces,
+                                                                           "s" if excess_traces > 1 else ""))
 
             job.terminate()
 
         elif mode in ["prove_basecase", "prove_induction"]:
             task_status_lower = task_status.lower() if task_status == "PASS" else task_status
-            job.log("engine_{}: Status returned by engine for {}: {}".format(engine_idx, mode.split("_")[1], task_status_lower))
-            job.summary.append("engine_{} ({}) returned {} for {}".format(engine_idx, " ".join(engine), task_status_lower, mode.split("_")[1]))
+            job.log("engine_{}: Status returned by engine for {}: {}".format(engine_idx,
+                                                                             mode.split("_")[1], task_status_lower))
+            job.summary.append("engine_{} ({}) returned {} for {}".format(engine_idx, " ".join(engine),
+                                                                          task_status_lower,
+                                                                          mode.split("_")[1]))
 
             if mode == "prove_basecase":
                 for task in job.basecase_tasks:
@@ -219,7 +227,8 @@ def run(mode, job, engine_idx, engine):
                 else:
                     job.update_status(task_status)
                     if os.path.exists("{}/engine_{}/trace.vcd".format(job.workdir, engine_idx)):
-                        job.summary.append("counterexample trace: {}/engine_{}/trace.vcd".format(job.workdir, engine_idx))
+                        job.summary.append("counterexample trace: {}/engine_{}/trace.vcd".format(
+                            job.workdir, engine_idx))
                     job.terminate()
 
             elif mode == "prove_induction":
